@@ -52,7 +52,7 @@ cp .env.example .env
 uvicorn bar_sistema_backend:app --reload
 ```
 
-6. Acesse a documentação interativa da API em:
+6. Acesse a documentação interativa da API em:http://127.0.0.1:8000/docs
 
 ## Endpoints da API
 
