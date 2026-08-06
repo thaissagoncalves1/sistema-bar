@@ -26,12 +26,14 @@ Sistema de gerenciamento de pedidos para bar/restaurante, onde garçons e balcon
 ### Passos
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/thaissagoncalves1/sistema-bar.git
 cd sistema-bar
 ```
 
 2. Crie um ambiente virtual e instale as dependências:
+
 ```bash
 pip install fastapi uvicorn "psycopg[binary]" python-dotenv
 ```
@@ -39,16 +41,18 @@ pip install fastapi uvicorn "psycopg[binary]" python-dotenv
 3. Crie um banco de dados PostgreSQL chamado `bar_sistema` e rode o script `schema.sql` para criar as tabelas.
 
 4. Copie o arquivo `.env.example` para `.env` e preencha com suas credenciais do banco:
+
 ```bash
 cp .env.example .env
 ```
 
 5. Rode o servidor:
+
 ```bash
 uvicorn bar_sistema_backend:app --reload
+```
 
 6. Acesse a documentação interativa da API em:
-http://127.0.0.1:8000/docs
 
 ## Endpoints da API
 
