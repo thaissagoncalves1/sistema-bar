@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atendimento — Sistema do Bar</title>
+<style>
+  :root {
+    --preto: #0f0f0f;
+    --preto-suave: #1a1a1a;
+    --cinza-escuro: #2b2b2b;
+    --cinza: #6b6b6b;
+    --cinza-claro: #d8d8d8;
+    --branco: #f7f7f5;
+    --vermelho: #c81e1e;
+    --vermelho-escuro: #8f1414;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--preto);
+    color: var(--branco);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--preto-suave);
+    border-bottom: 3px solid var(--vermelho);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+
+  header h1 span { color: var(--vermelho); }
+
+  .comanda-atual {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--cinza-escuro);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+  }
+
+  .comanda-atual .rotulo {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cinza-claro);
+  }
+
+  .comanda-atual .valor {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 0;
+    min-height: calc(100vh - 70px);
+  }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- ÁREA DE ABERTURA DE COMANDA ---------- */
+
+  .abrir-comanda {
+    padding: 24px;
+    background: var(--preto-suave);
+    border-bottom: 1px solid var(--cinza-escuro);
+  }
+
+  .abrir-comanda .campo {
+    display: flex;
+    gap: 10px;
+    max-width: 480px;
+    flex-wrap: wrap;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 180px;
+    padding: 12px 14px;
+    background: var(--preto);
+    border: 1px solid var(--cinza-escuro);
+    border-radius: var(--radius);
+    color: var(--branco);
+    font-size: 0.95rem;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--vermelho);
+  }
+
+  .comandas-abertas-rapido {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .chip-comanda {
+    padding: 8px 14px;
+    background: var(--cinza-escuro);
+    border: 1px solid transparent;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .chip-comanda:hover { border-color: var(--vermelho); }
+
+  .chip-comanda.ativa {
+    background: var(--vermelho);
+    color: var(--branco);
+  }
+
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+
+  button:active { transform: scale(0.97); }
+
+  .btn-primario {
+    background: var(--vermelho);
+    color: var(--branco);
+    padding: 12px 22px;
+  }
+
+  .btn-primario:hover { background: var(--vermelho-escuro); }
+
+  .btn-secundario {
+    background: transparent;
+    color: var(--cinza-claro);
+    border: 1px solid var(--cinza-escuro);
+    padding: 8px 14px;
+  }
+
+  .btn-secundario:hover { border-color: var(--cinza); color: var(--branco); }
+
+  /* ---------- CARDÁPIO ---------- */
+
+  .cardapio { padding: 24px; overflow-y: auto; }
+
+  .categoria { margin-bottom: 32px; }
+
+  .categoria h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vermelho);
+    border-bottom: 1px solid var(--cinza-escuro);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  .grade-produtos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .divisor-subcategoria {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cinza);
+    margin: 14px 0 4px;
+    padding-top: 6px;
+  }
+
+  .divisor-subcategoria:first-child { margin-top: 0; }
+
+  .produto-card {
+    background: var(--preto-suave);
+    border: 1px solid var(--cinza-escuro);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.15s ease;
+  }
+
+  .produto-card:hover { border-color: var(--vermelho); }
+
+  .produto-info { min-width: 0; }
+
+  .produto-nome {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .produto-preco {
+    color: var(--cinza-claro);
+    font-size: 0.82rem;
+    margin-top: 4px;
+  }
+
+  .btn-add {
+    background: var(--cinza-escuro);
+    color: var(--branco);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .btn-add:hover { background: var(--vermelho); }
+
+  /* ---------- COMANDA LATERAL ---------- */
+
+  .painel-comanda {
+    background: var(--preto-suave);
+    border-left: 1px solid var(--cinza-escuro);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .painel-comanda .cabecalho-painel {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--cinza-escuro);
+  }
+
+  .painel-comanda .cabecalho-painel h2 {
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+  }
+
+  .painel-comanda .cabecalho-painel .sub {
+    color: var(--cinza-claro);
+    font-size: 0.78rem;
+    margin-top: 4px;
+  }
+
+  .lista-itens {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 20px;
+  }
+
+  .item-comanda {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--cinza-escuro);
+    gap: 10px;
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+
+  .item-nome {
+    font-size: 0.87rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .item-preco {
+    font-size: 0.78rem;
+    color: var(--cinza-claro);
+    margin-top: 2px;
+  }
+
+  .item-controles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-qtd {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--cinza-escuro);
+    color: var(--branco);
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .btn-qtd:hover { background: var(--vermelho); }
+
+  .item-qtd { font-weight: 700; min-width: 18px; text-align: center; font-size: 0.9rem; }
+
+  .btn-remover {
+    background: none;
+    color: var(--cinza);
+    font-size: 0.75rem;
+    padding: 4px;
+  }
+
+  .btn-remover:hover { color: var(--vermelho); }
+
+  .vazio {
+    color: var(--cinza);
+    text-align: center;
+    padding: 40px 10px;
+    font-size: 0.88rem;
+  }
+
+  .rodape-painel {
+    padding: 18px 20px 22px;
+    border-top: 1px solid var(--cinza-escuro);
+  }
+
+  .linha-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+  }
+
+  .linha-total .rotulo {
+    font-size: 0.85rem;
+    color: var(--cinza-claro);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .linha-total .valor {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--vermelho);
+  }
+
+  .btn-confirmar {
+    width: 100%;
+    padding: 14px;
+    font-size: 0.95rem;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--cinza-escuro);
+    border: 1px solid var(--vermelho);
+    color: var(--branco);
+    padding: 12px 22px;
+    border-radius: var(--radius);
+    font-size: 0.88rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 100;
+  }
+
+  .toast.mostrar {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .mensagem-central {
+    color: var(--cinza);
+    padding: 40px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sistema do <span>Bar</span> — Atendimento</h1>
+  <div class="comanda-atual" id="indicadorComanda">
+    <span class="rotulo">Comanda</span>
+    <span class="valor" id="nomeComandaAtual">nenhuma selecionada</span>
+  </div>
+</header>
+
+<main>
+  <div>
+    <section class="abrir-comanda">
+      <div class="campo">
+        <input type="text" id="inputIdentificador" placeholder="Nº da mesa ou nome do cliente (ex: Mesa 3, João)">
+        <button class="btn-primario" id="btnAbrirComanda">Abrir comanda nova</button>
+      </div>
+      <div class="comandas-abertas-rapido" id="comandasAbertasRapido"></div>
+    </section>
+
+    <section class="cardapio" id="cardapio">
+      <div class="mensagem-central">Carregando cardápio...</div>
+    </section>
+  </div>
+
+  <aside class="painel-comanda">
+    <div class="cabecalho-painel">
+      <h2>Comanda</h2>
+      <div class="sub" id="subtituloPainel">Abra ou selecione uma comanda para começar</div>
+    </div>
+
+    <div class="lista-itens" id="listaItens">
+      <div class="vazio">Nenhum item ainda</div>
+    </div>
+
+    <div class="rodape-painel">
+      <div class="linha-total">
+        <span class="rotulo">Total</span>
+        <span class="valor" id="totalComanda">R$ 0,00</span>
+      </div>
+      <button class="btn-primario btn-confirmar" id="btnAtualizar" disabled>Atualizar comanda</button>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_URL = "http://127.0.0.1:8000";
+
+  const BEBIDAS_NAO_ALCOOLICAS = [
+    "Redbull lata",
+    "Coca Cola lata",
+    "Guaravita",
+    "Coca Cola 2L",
+    "Guaraná Antarctica 2L",
+    "Fanta Uva/Laranja 2L",
+    "Guaraná Antarctica lata",
+    "Fanta Uva/Laranja lata",
+    "Água Tônica",
+    "Limoneto 500 ml"
+  ].map(nome => nome.toLowerCase());
+
+  function ehNaoAlcoolica(nomeProduto) {
+    return BEBIDAS_NAO_ALCOOLICAS.includes(nomeProduto.toLowerCase());
+  }
+
+  function ordenarBebidas(produtos) {
+    const alcoolicas = produtos.filter(p => !ehNaoAlcoolica(p[1]));
+    const naoAlcoolicas = produtos.filter(p => ehNaoAlcoolica(p[1]));
+
+    alcoolicas.sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+    naoAlcoolicas.sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+
+    return [...alcoolicas, ...naoAlcoolicas];
+  }
+
+  let comandaAtualId = null;
+  let comandaAtualNome = null;
+  let produtosCache = [];
+
+  function mostrarToast(mensagem) {
+    const toast = document.getElementById("toast");
+    toast.textContent = mensagem;
+    toast.classList.add("mostrar");
+    setTimeout(() => toast.classList.remove("mostrar"), 2200);
+  }
+
+  function formatarPreco(valor) {
+    return "R$ " + Number(valor).toFixed(2).replace(".", ",");
+  }
+
+  // ---------- CARDÁPIO ----------
+
+  async function carregarCardapio() {
+    try {
+      const [respCategorias, respProdutos] = await Promise.all([
+        fetch(`${API_URL}/categorias`),
+        fetch(`${API_URL}/produtos`)
+      ]);
+      const categorias = await respCategorias.json();
+      const produtos = await respProdutos.json();
+      produtosCache = produtos;
+
+      const container = document.getElementById("cardapio");
+      container.innerHTML = "";
+
+      categorias.forEach(([catId, catNome]) => {
+        let produtosDaCategoria = produtos.filter(p => p[3] === catId);
+        if (produtosDaCategoria.length === 0) return;
+
+        if (catNome === "Bebidas") {
+          produtosDaCategoria = ordenarBebidas(produtosDaCategoria);
+        }
+
+        const bloco = document.createElement("div");
+        bloco.className = "categoria";
+
+        const titulo = document.createElement("h2");
+        titulo.textContent = catNome;
+        bloco.appendChild(titulo);
+
+        const grade = document.createElement("div");
+        grade.className = "grade-produtos";
+
+        if (catNome === "Bebidas" && produtosDaCategoria.length > 0) {
+          const divisorInicial = document.createElement("div");
+          divisorInicial.className = "divisor-subcategoria";
+          divisorInicial.textContent = "Alcoólicas";
+          grade.appendChild(divisorInicial);
+        }
+
+        produtosDaCategoria.forEach(([id, nome, preco], indice) => {
+          if (catNome === "Bebidas" && indice > 0) {
+            const anteriorEraAlcoolica = !ehNaoAlcoolica(produtosDaCategoria[indice - 1][1]);
+            const atualEhNaoAlcoolica = ehNaoAlcoolica(nome);
+            if (anteriorEraAlcoolica && atualEhNaoAlcoolica) {
+              const divisor = document.createElement("div");
+              divisor.className = "divisor-subcategoria";
+              divisor.textContent = "Não alcoólicas";
+              grade.appendChild(divisor);
+            }
+          }
+
+          const card = document.createElement("div");
+          card.className = "produto-card";
+          card.innerHTML = `
+            <div class="produto-info">
+              <div class="produto-nome">${nome}</div>
+              <div class="produto-preco">${formatarPreco(preco)}</div>
+            </div>
+            <button class="btn-add" title="Adicionar">+</button>
+          `;
+          card.querySelector(".btn-add").addEventListener("click", () => adicionarItem(id));
+          grade.appendChild(card);
+        });
+
+        bloco.appendChild(grade);
+        container.appendChild(bloco);
+      });
+    } catch (erro) {
+      document.getElementById("cardapio").innerHTML =
+        `<div class="mensagem-central">Não foi possível carregar o cardápio.<br>Confirme se o backend está rodando em ${API_URL}</div>`;
+    }
+  }
+
+  // ---------- COMANDAS ABERTAS (retomar edição) ----------
+
+  async function carregarComandasAbertasRapido() {
+    try {
+      const resp = await fetch(`${API_URL}/comandas`);
+      const comandas = await resp.json();
+      const abertas = comandas.filter(c => c.status === "aberta");
+
+      const container = document.getElementById("comandasAbertasRapido");
+      container.innerHTML = "";
+
+      if (abertas.length === 0) return;
+
+      abertas.forEach(comanda => {
+        const chip = document.createElement("div");
+        chip.className = "chip-comanda";
+        if (comanda.id === comandaAtualId) chip.classList.add("ativa");
+        chip.textContent = comanda.identificador_comanda;
+        chip.addEventListener("click", () => selecionarComandaExistente(comanda));
+        container.appendChild(chip);
+      });
+    } catch (erro) {
+      // silencioso — não é crítico se essa lista falhar
+    }
+  }
+
+  async function selecionarComandaExistente(comanda) {
+    comandaAtualId = comanda.id;
+    comandaAtualNome = comanda.identificador_comanda;
+
+    document.getElementById("nomeComandaAtual").textContent = comandaAtualNome;
+    document.getElementById("subtituloPainel").textContent = comandaAtualNome;
+    document.getElementById("btnAtualizar").disabled = false;
+
+    await carregarItens();
+    await carregarComandasAbertasRapido();
+    mostrarToast(`Editando comanda "${comandaAtualNome}"`);
+  }
+
+  // ---------- ABRIR COMANDA NOVA ----------
+
+  document.getElementById("btnAbrirComanda").addEventListener("click", abrirComanda);
+  document.getElementById("inputIdentificador").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") abrirComanda();
+  });
+
+  async function abrirComanda() {
+    const input = document.getElementById("inputIdentificador");
+    const identificador = input.value.trim();
+    if (!identificador) {
+      mostrarToast("Digite um número de mesa ou nome");
+      return;
+    }
+
+    try {
+      const resp = await fetch(`${API_URL}/comandas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identificador_comanda: identificador })
+      });
+      const dados = await resp.json();
+
+      comandaAtualId = dados.id;
+      comandaAtualNome = dados.identificador_comanda;
+
+      document.getElementById("nomeComandaAtual").textContent = comandaAtualNome;
+      document.getElementById("subtituloPainel").textContent = comandaAtualNome;
+      document.getElementById("btnAtualizar").disabled = false;
+
+      input.value = "";
+      mostrarToast(`Comanda "${comandaAtualNome}" aberta`);
+      await carregarItens();
+      await carregarComandasAbertasRapido();
+    } catch (erro) {
+      mostrarToast("Erro ao abrir comanda. Verifique o backend.");
+    }
+  }
+
+  // ---------- ITENS DA COMANDA ----------
+
+  async function adicionarItem(produtoId) {
+    if (!comandaAtualId) {
+      mostrarToast("Abra uma comanda primeiro");
+      return;
+    }
+
+    try {
+      await fetch(`${API_URL}/comandas/${comandaAtualId}/itens`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ produto_id: produtoId, quantidade: 1 })
+      });
+      await carregarItens();
+    } catch (erro) {
+      mostrarToast("Erro ao adicionar item");
+    }
+  }
+
+  async function diminuirItem(produtoId) {
+    try {
+      await fetch(`${API_URL}/comandas/${comandaAtualId}/produtos/${produtoId}/diminuir`, {
+        method: "PATCH"
+      });
+      await carregarItens();
+    } catch (erro) {
+      mostrarToast("Erro ao reduzir item");
+    }
+  }
+
+  async function removerItem(produtoId) {
+    try {
+      await fetch(`${API_URL}/comandas/${comandaAtualId}/produtos/${produtoId}`, {
+        method: "DELETE"
+      });
+      await carregarItens();
+      mostrarToast("Item removido");
+    } catch (erro) {
+      mostrarToast("Erro ao remover item");
+    }
+  }
+
+  async function carregarItens() {
+    if (!comandaAtualId) return;
+
+    try {
+      const [respItens, respTotal] = await Promise.all([
+        fetch(`${API_URL}/comandas/${comandaAtualId}/itens`),
+        fetch(`${API_URL}/comandas/${comandaAtualId}/total`)
+      ]);
+      const itens = await respItens.json();
+      const totalDados = await respTotal.json();
+
+      const lista = document.getElementById("listaItens");
+
+      if (itens.length === 0) {
+        lista.innerHTML = `<div class="vazio">Nenhum item ainda</div>`;
+      } else {
+        lista.innerHTML = "";
+        itens.forEach(item => {
+          const produtoId = item.produto_id;
+
+          const linha = document.createElement("div");
+          linha.className = "item-comanda";
+          linha.innerHTML = `
+            <div class="item-info">
+              <div class="item-nome">${item.produto_nome}</div>
+              <div class="item-preco">${formatarPreco(item.preco_unitario)} un.</div>
+            </div>
+            <div class="item-controles">
+              <button class="btn-qtd btn-diminuir">−</button>
+              <span class="item-qtd">${item.quantidade}</span>
+              <button class="btn-qtd btn-aumentar">+</button>
+            </div>
+          `;
+          linha.querySelector(".btn-diminuir").addEventListener("click", () => diminuirItem(produtoId));
+          linha.querySelector(".btn-aumentar").addEventListener("click", () => adicionarItem(produtoId));
+          lista.appendChild(linha);
+        });
+      }
+
+      document.getElementById("totalComanda").textContent = formatarPreco(totalDados.total);
+    } catch (erro) {
+      mostrarToast("Erro ao carregar itens da comanda");
+    }
+  }
+
+  document.getElementById("btnAtualizar").addEventListener("click", carregarItens);
+
+  carregarCardapio();
+  carregarComandasAbertasRapido();
+</script>
+
+</body>
+</html>

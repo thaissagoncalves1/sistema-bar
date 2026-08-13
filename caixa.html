@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fechar Comanda — Sistema do Bar</title>
+<style>
+  :root {
+    --preto: #0f0f0f;
+    --preto-suave: #1a1a1a;
+    --cinza-escuro: #2b2b2b;
+    --cinza: #6b6b6b;
+    --cinza-claro: #d8d8d8;
+    --branco: #f7f7f5;
+    --vermelho: #c81e1e;
+    --vermelho-escuro: #8f1414;
+    --verde: #2e8b57;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--preto);
+    color: var(--branco);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--preto-suave);
+    border-bottom: 3px solid var(--vermelho);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+
+  header h1 span { color: var(--vermelho); }
+
+  .btn-atualizar-lista {
+    background: var(--cinza-escuro);
+    color: var(--branco);
+    border: none;
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .btn-atualizar-lista:hover { background: var(--cinza); }
+
+  main {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 70px);
+  }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- LISTA DE COMANDAS ---------- */
+
+  .lista-comandas {
+    background: var(--preto-suave);
+    border-right: 1px solid var(--cinza-escuro);
+    overflow-y: auto;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .lista-comandas .titulo-coluna {
+    padding: 18px 20px 12px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--cinza-claro);
+    border-bottom: 1px solid var(--cinza-escuro);
+  }
+
+  .abas-status {
+    display: flex;
+    border-bottom: 1px solid var(--cinza-escuro);
+  }
+
+  .aba-status {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--cinza-claro);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s ease;
+  }
+
+  .aba-status:hover { color: var(--branco); }
+
+  .aba-status.ativa {
+    color: var(--vermelho);
+    border-bottom-color: var(--vermelho);
+  }
+
+  .comanda-card {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--cinza-escuro);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .comanda-card:hover { background: var(--cinza-escuro); }
+
+  .comanda-card.selecionada {
+    background: var(--cinza-escuro);
+    border-left: 3px solid var(--vermelho);
+  }
+
+  .comanda-card .nome {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .comanda-card .info-secundaria {
+    font-size: 0.76rem;
+    color: var(--cinza-claro);
+    margin-top: 3px;
+  }
+
+  .badge-status {
+    font-size: 0.68rem;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .badge-aberta {
+    background: rgba(200, 30, 30, 0.18);
+    color: #ff6b6b;
+  }
+
+  .badge-fechada {
+    background: rgba(46, 139, 87, 0.18);
+    color: #6fcf97;
+  }
+
+  .badge-cancelada {
+    background: rgba(107, 107, 107, 0.25);
+    color: var(--cinza-claro);
+  }
+
+  .vazio-lista {
+    padding: 40px 20px;
+    color: var(--cinza);
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  /* ---------- DETALHE DA COMANDA ---------- */
+
+  .detalhe {
+    padding: 30px 40px;
+    overflow-y: auto;
+  }
+
+  .sem-selecao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    color: var(--cinza);
+    text-align: center;
+    font-size: 1rem;
+    padding: 20px;
+  }
+
+  .cabecalho-detalhe {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--cinza-escuro);
+  }
+
+  .cabecalho-detalhe h2 {
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+  }
+
+  .cabecalho-detalhe .meta {
+    color: var(--cinza-claro);
+    font-size: 0.85rem;
+  }
+
+  .tabela-itens {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+  }
+
+  .tabela-itens th {
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cinza-claro);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--cinza-escuro);
+  }
+
+  .tabela-itens td {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--cinza-escuro);
+    font-size: 0.92rem;
+  }
+
+  .tabela-itens td.numero { text-align: right; }
+
+  .tabela-itens tfoot td {
+    border-bottom: none;
+    padding-top: 18px;
+    font-size: 1rem;
+  }
+
+  .total-final {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--vermelho);
+  }
+
+  .area-fechamento {
+    background: var(--preto-suave);
+    border: 1px solid var(--cinza-escuro);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 460px;
+  }
+
+  .area-fechamento h3 {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  .opcoes-pagamento {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .opcao-pagamento {
+    padding: 12px 8px;
+    text-align: center;
+    background: var(--preto);
+    border: 1px solid var(--cinza-escuro);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+  }
+
+  .opcao-pagamento:hover { border-color: var(--cinza); }
+
+  .opcao-pagamento.selecionada {
+    border-color: var(--vermelho);
+    background: rgba(200, 30, 30, 0.12);
+    color: var(--vermelho);
+  }
+
+  button.btn-fechar-comanda {
+    width: 100%;
+    padding: 14px;
+    background: var(--vermelho);
+    color: var(--branco);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button.btn-fechar-comanda:hover { background: var(--vermelho-escuro); }
+
+  button.btn-fechar-comanda:disabled {
+    background: var(--cinza-escuro);
+    color: var(--cinza);
+    cursor: not-allowed;
+  }
+
+  .btn-cancelar-comanda {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    color: var(--cinza-claro);
+    border: 1px solid var(--cinza-escuro);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-cancelar-comanda:hover {
+    border-color: var(--vermelho);
+    color: var(--vermelho);
+  }
+
+  .aviso-sem-itens {
+    background: rgba(200, 30, 30, 0.1);
+    border: 1px solid var(--vermelho-escuro);
+    color: #ff8f8f;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+  }
+
+  .comanda-fechada-aviso {
+    background: rgba(46, 139, 87, 0.15);
+    border: 1px solid var(--verde);
+    color: #6fcf97;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    max-width: 460px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--cinza-escuro);
+    border: 1px solid var(--vermelho);
+    color: var(--branco);
+    padding: 12px 22px;
+    border-radius: var(--radius);
+    font-size: 0.88rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 100;
+  }
+
+  .toast.mostrar {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sistema do <span>Bar</span> — Fechar Comanda</h1>
+  <button class="btn-atualizar-lista" id="btnAtualizarLista">Atualizar lista</button>
+</header>
+
+<main>
+  <div class="lista-comandas">
+    <div class="titulo-coluna">Comandas</div>
+    <div class="abas-status">
+      <div class="aba-status ativa" data-status="aberta">Abertas</div>
+      <div class="aba-status" data-status="fechada">Fechadas</div>
+      <div class="aba-status" data-status="cancelada">Canceladas</div>
+    </div>
+    <div id="listaComandas">
+      <div class="vazio-lista">Carregando...</div>
+    </div>
+  </div>
+
+  <div class="detalhe" id="areaDetalhe">
+    <div class="sem-selecao">Selecione uma comanda na lista ao lado para ver os detalhes</div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_URL = "http://127.0.0.1:8000";
+
+  let comandaSelecionadaId = null;
+  let formaPagamentoSelecionada = null;
+  let statusFiltroAtual = "aberta";
+
+  function mostrarToast(mensagem) {
+    const toast = document.getElementById("toast");
+    toast.textContent = mensagem;
+    toast.classList.add("mostrar");
+    setTimeout(() => toast.classList.remove("mostrar"), 2200);
+  }
+
+  function formatarPreco(valor) {
+    return "R$ " + Number(valor).toFixed(2).replace(".", ",");
+  }
+
+  function formatarData(isoString) {
+    if (!isoString) return "";
+    const data = new Date(isoString);
+    return data.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  }
+
+  // ---------- LISTA DE COMANDAS ----------
+
+  async function carregarListaComandas() {
+    try {
+      const resp = await fetch(`${API_URL}/comandas`);
+      const comandas = await resp.json();
+      const filtradas = comandas.filter(c => c.status === statusFiltroAtual);
+
+      filtradas.sort((a, b) => {
+        const dataA = new Date(statusFiltroAtual === "fechada" ? a.pago_em : a.criado_em);
+        const dataB = new Date(statusFiltroAtual === "fechada" ? b.pago_em : b.criado_em);
+        return dataB - dataA;
+      });
+
+      const container = document.getElementById("listaComandas");
+
+      if (filtradas.length === 0) {
+        const textoVazio = {
+          aberta: "Nenhuma comanda aberta no momento",
+          fechada: "Nenhuma comanda fechada ainda",
+          cancelada: "Nenhuma comanda cancelada"
+        };
+        container.innerHTML = `<div class="vazio-lista">${textoVazio[statusFiltroAtual]}</div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      filtradas.forEach(comanda => {
+        const card = document.createElement("div");
+        card.className = "comanda-card";
+        if (comanda.id === comandaSelecionadaId) card.classList.add("selecionada");
+
+        let infoSecundaria = "";
+        let badgeTexto = "";
+        let badgeClasse = "";
+
+        if (comanda.status === "aberta") {
+          infoSecundaria = `Aberta às ${formatarData(comanda.criado_em)}`;
+          badgeTexto = "Aberta";
+          badgeClasse = "badge-aberta";
+        } else if (comanda.status === "fechada") {
+          infoSecundaria = `Paga em ${formatarData(comanda.pago_em)} · ${comanda.forma_pagamento || ""}`;
+          badgeTexto = "Fechada";
+          badgeClasse = "badge-fechada";
+        } else {
+          infoSecundaria = `Aberta às ${formatarData(comanda.criado_em)}`;
+          badgeTexto = "Cancelada";
+          badgeClasse = "badge-cancelada";
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="nome">${comanda.identificador_comanda}</div>
+            <div class="info-secundaria">${infoSecundaria}</div>
+          </div>
+          <span class="badge-status ${badgeClasse}">${badgeTexto}</span>
+        `;
+        card.addEventListener("click", () => selecionarComanda(comanda));
+        container.appendChild(card);
+      });
+    } catch (erro) {
+      document.getElementById("listaComandas").innerHTML =
+        `<div class="vazio-lista">Não foi possível carregar as comandas.<br>Confirme se o backend está rodando.</div>`;
+    }
+  }
+
+  document.querySelectorAll(".aba-status").forEach(aba => {
+    aba.addEventListener("click", () => {
+      document.querySelectorAll(".aba-status").forEach(a => a.classList.remove("ativa"));
+      aba.classList.add("ativa");
+      statusFiltroAtual = aba.dataset.status;
+      comandaSelecionadaId = null;
+      document.getElementById("areaDetalhe").innerHTML = `<div class="sem-selecao">Selecione uma comanda na lista ao lado para ver os detalhes</div>`;
+      carregarListaComandas();
+    });
+  });
+
+  // ---------- DETALHE DA COMANDA ----------
+
+  async function selecionarComanda(comanda) {
+    comandaSelecionadaId = comanda.id;
+    formaPagamentoSelecionada = null;
+
+    document.querySelectorAll(".comanda-card").forEach(c => c.classList.remove("selecionada"));
+    carregarListaComandas();
+
+    await carregarDetalhe(comanda);
+  }
+
+  async function carregarDetalhe(comanda) {
+    const area = document.getElementById("areaDetalhe");
+    area.innerHTML = `<div class="sem-selecao">Carregando...</div>`;
+
+    try {
+      const [respItens, respTotal] = await Promise.all([
+        fetch(`${API_URL}/comandas/${comanda.id}/itens`),
+        fetch(`${API_URL}/comandas/${comanda.id}/total`)
+      ]);
+      const itens = await respItens.json();
+      const totalDados = await respTotal.json();
+
+      let linhasItens = "";
+      itens.forEach(item => {
+        const subtotal = item.quantidade * item.preco_unitario;
+        linhasItens += `
+          <tr>
+            <td>${item.produto_nome}</td>
+            <td class="numero">${item.quantidade}</td>
+            <td class="numero">${formatarPreco(item.preco_unitario)}</td>
+            <td class="numero">${formatarPreco(subtotal)}</td>
+          </tr>
+        `;
+      });
+
+      if (itens.length === 0) {
+        linhasItens = `<tr><td colspan="4" style="color: var(--cinza); text-align:center; padding: 24px 0;">Nenhum item nesta comanda ainda</td></tr>`;
+      }
+
+      area.innerHTML = `
+        <div class="cabecalho-detalhe">
+          <div>
+            <h2>${comanda.identificador_comanda}</h2>
+            <div class="meta">Comanda #${comanda.id} · aberta às ${formatarData(comanda.criado_em)}</div>
+          </div>
+        </div>
+
+        <table class="tabela-itens">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th class="numero">Qtd.</th>
+              <th class="numero">Preço un.</th>
+              <th class="numero">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${linhasItens}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total a pagar</td>
+              <td class="numero total-final">${formatarPreco(totalDados.total)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="area-fechamento" id="areaFechamento">
+          ${itens.length === 0 ? '<div class="aviso-sem-itens">Esta comanda ainda não tem itens. Adicione itens na tela de Atendimento antes de fechar, ou cancele a comanda se foi aberta por engano.</div>' : ''}
+          <h3>Forma de pagamento</h3>
+          <div class="opcoes-pagamento">
+            <div class="opcao-pagamento" data-valor="Pix">Pix</div>
+            <div class="opcao-pagamento" data-valor="Cartão de Crédito">Crédito</div>
+            <div class="opcao-pagamento" data-valor="Cartão de Débito">Débito</div>
+            <div class="opcao-pagamento" data-valor="Dinheiro">Dinheiro</div>
+            <div class="opcao-pagamento" data-valor="Vale Refeição">Vale Refeição</div>
+          </div>
+          <button class="btn-fechar-comanda" id="btnFecharComanda" disabled>Fechar comanda e receber</button>
+          <button class="btn-cancelar-comanda" id="btnCancelarComanda">Cancelar esta comanda</button>
+        </div>
+      `;
+
+      document.getElementById("btnCancelarComanda").addEventListener("click", () => cancelarComanda(comanda));
+
+      if (itens.length === 0) {
+        document.querySelectorAll(".opcao-pagamento").forEach(o => o.style.pointerEvents = "none");
+        document.querySelectorAll(".opcao-pagamento").forEach(o => o.style.opacity = "0.4");
+      }
+
+      document.querySelectorAll(".opcao-pagamento").forEach(opcao => {
+        opcao.addEventListener("click", () => {
+          if (itens.length === 0) return;
+          document.querySelectorAll(".opcao-pagamento").forEach(o => o.classList.remove("selecionada"));
+          opcao.classList.add("selecionada");
+          formaPagamentoSelecionada = opcao.dataset.valor;
+          document.getElementById("btnFecharComanda").disabled = false;
+        });
+      });
+
+      document.getElementById("btnFecharComanda").addEventListener("click", () => fecharComanda(comanda));
+    } catch (erro) {
+      area.innerHTML = `<div class="sem-selecao">Erro ao carregar os detalhes da comanda.</div>`;
+    }
+  }
+
+  async function cancelarComanda(comanda) {
+    const confirmar = confirm(`Tem certeza que deseja cancelar a comanda "${comanda.identificador_comanda}"? Essa ação não pode ser desfeita.`);
+    if (!confirmar) return;
+
+    try {
+      const resp = await fetch(`${API_URL}/comandas/${comanda.id}/cancelar`, {
+        method: "PUT"
+      });
+      const dados = await resp.json();
+
+      if (dados.erro) {
+        mostrarToast(dados.erro);
+        return;
+      }
+
+      mostrarToast(`Comanda "${comanda.identificador_comanda}" cancelada`);
+      comandaSelecionadaId = null;
+
+      document.getElementById("areaDetalhe").innerHTML = `
+        <div class="sem-selecao">Comanda "${comanda.identificador_comanda}" foi cancelada.</div>
+      `;
+
+      carregarListaComandas();
+    } catch (erro) {
+      mostrarToast("Erro ao cancelar a comanda");
+    }
+  }
+
+  async function fecharComanda(comanda) {
+    if (!formaPagamentoSelecionada) {
+      mostrarToast("Selecione a forma de pagamento");
+      return;
+    }
+
+    try {
+      const resp = await fetch(`${API_URL}/comandas/${comanda.id}/fechar`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forma_pagamento: formaPagamentoSelecionada })
+      });
+      const dados = await resp.json();
+
+      if (dados.erro) {
+        mostrarToast(dados.erro);
+        return;
+      }
+
+      mostrarToast(`Comanda "${comanda.identificador_comanda}" fechada com sucesso`);
+      comandaSelecionadaId = null;
+
+      document.getElementById("areaDetalhe").innerHTML = `
+        <div class="comanda-fechada-aviso">
+          ✓ Comanda "${comanda.identificador_comanda}" fechada e paga via ${formaPagamentoSelecionada}.
+        </div>
+      `;
+
+      carregarListaComandas();
+    } catch (erro) {
+      mostrarToast("Erro ao fechar a comanda");
+    }
+  }
+
+  document.getElementById("btnAtualizarLista").addEventListener("click", carregarListaComandas);
+
+  carregarListaComandas();
+  setInterval(carregarListaComandas, 15000);
+</script>
+
+</body>
+</html>
