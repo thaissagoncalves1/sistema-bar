@@ -168,12 +168,17 @@
   </footer>
 
   <script>
-    const API_URL = "http://127.0.0.1:8000";
+    const API_URL = "https://sistema-bar-backend.onrender.com";
 
-    async function verificarBackend() {
+    async function verificarBackend(tentativa = 1) {
       const bolinha = document.getElementById("bolinhaStatus");
       const texto = document.getElementById("statusBackend");
       const statusTexto = document.getElementById("statusTexto");
+
+      if (tentativa === 1) {
+        texto.textContent = "conectando...";
+        statusTexto.textContent = "O servidor pode levar até 1 minuto para responder na primeira vez.";
+      }
 
       try {
         const resp = await fetch(`${API_URL}/`);
@@ -181,13 +186,19 @@
           bolinha.className = "bolinha online";
           texto.textContent = "backend conectado";
           statusTexto.textContent = "";
-        } else {
-          throw new Error();
+          return;
         }
+        throw new Error();
       } catch (erro) {
-        bolinha.className = "bolinha offline";
-        texto.textContent = "backend não encontrado";
-        statusTexto.textContent = "Verifique se o servidor está rodando (uvicorn) antes de continuar.";
+        if (tentativa < 6) {
+          bolinha.className = "bolinha";
+          texto.textContent = `tentando conectar (${tentativa}/6)...`;
+          setTimeout(() => verificarBackend(tentativa + 1), 8000);
+        } else {
+          bolinha.className = "bolinha offline";
+          texto.textContent = "não foi possível conectar";
+          statusTexto.textContent = "Verifique sua internet e tente recarregar a página em alguns instantes.";
+        }
       }
     }
 
